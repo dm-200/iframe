@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Page - Wide Iframe Test</title>
+    <title>Booking Page - Mobile Layout Test</title>
 
     <style>
         body {
@@ -11,6 +11,16 @@
             padding: 20px;
             font-family: Arial, sans-serif;
             background: #f3f4f6;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .booking-container {
+            width: 390px;
+            max-width: 100%;
+            margin: 0 auto;
         }
 
         iframe {
@@ -24,12 +34,14 @@
 </head>
 <body>
 
-    <h2>Booking Page Test</h2>
+    <h2>Booking Page - Mobile Layout Test</h2>
 
-    <iframe
-        src="https://book.booklogica.com/northbound"
-        title="Booking Page">
-    </iframe>
+    <div class="booking-container">
+        <iframe
+            src="https://book.booklogica.com/northbound"
+            title="Booking Page">
+        </iframe>
+    </div>
 
 </body>
 </html>
