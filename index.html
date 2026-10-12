@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,6 +12,7 @@
             padding: 20px;
             font-family: Arial, sans-serif;
             background: #f3f4f6;
+            color: #1f2937;
         }
 
         .booking-container {
@@ -22,8 +24,94 @@
         iframe {
             display: block;
             width: 100%;
-            height: 500px; /* Initial height until first message */
+            height: 500px;
             border: 0;
+        }
+
+        .theme-controls {
+            max-width: 520px;
+            margin: 20px auto;
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+
+        .theme-controls h3 {
+            margin: 0 0 8px;
+        }
+
+        .theme-controls p {
+            margin: 0 0 16px;
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .color-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 14px 0;
+        }
+
+        .color-control label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-control input[type="color"] {
+            width: 44px;
+            height: 36px;
+            padding: 2px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .color-value {
+            width: 78px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .theme-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .theme-actions button {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #reset-theme {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        #apply-theme {
+            background: #1d4ed8;
+            color: white;
+        }
+
+        #theme-status {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #6b7280;
         }
 
         @media (max-width: 600px) {
@@ -31,12 +119,92 @@
                 width: calc(100% + 24px);
                 margin-left: -12px;
             }
+
+            .theme-controls {
+                padding: 14px;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <h2>Booking Page Test</h2>
+
+    <section class="theme-controls">
+        <h3>Client appearance</h3>
+        <p>
+            Customize the booking page colors and preview the changes
+            in the embedded booking page.
+        </p>
+
+        <div class="color-control">
+            <label for="theme-background">
+                Main background
+            </label>
+            <div class="color-input-group">
+                <input
+                    type="color"
+                    id="theme-background"
+                    value="#142D50">
+                <input
+                    class="color-value"
+                    id="theme-background-value"
+                    value="#142D50"
+                    maxlength="7"
+                    aria-label="Main background hex color">
+            </div>
+        </div>
+
+        <div class="color-control">
+            <label for="theme-card">
+                Service card
+            </label>
+            <div class="color-input-group">
+                <input
+                    type="color"
+                    id="theme-card"
+                    value="#F5F3ED">
+                <input
+                    class="color-value"
+                    id="theme-card-value"
+                    value="#F5F3ED"
+                    maxlength="7"
+                    aria-label="Service card hex color">
+            </div>
+        </div>
+
+        <div class="color-control">
+            <label for="theme-surface">
+                Background behind service tiles
+            </label>
+            <div class="color-input-group">
+                <input
+                    type="color"
+                    id="theme-surface"
+                    value="#F1EEE5">
+                <input
+                    class="color-value"
+                    id="theme-surface-value"
+                    value="#F1EEE5"
+                    maxlength="7"
+                    aria-label="Service tile background hex color">
+            </div>
+        </div>
+
+        <div class="theme-actions">
+            <button type="button" id="apply-theme">
+                Apply colors
+            </button>
+            <button type="button" id="reset-theme">
+                Reset Northbound
+            </button>
+        </div>
+
+        <div id="theme-status" role="status" aria-live="polite">
+            Waiting for the booking page...
+        </div>
+    </section>
 
     <div class="booking-container">
         <iframe
@@ -49,15 +217,132 @@
 
     <script>
         const bookingFrame = document.getElementById("booking-frame");
+        const status = document.getElementById("theme-status");
 
-        window.addEventListener("message", function (event) {
+        const BOOKING_ORIGIN = "https://book.booklogica.com";
 
-            // Accept messages only from the booking page
-            if (event.origin !== "https://book.booklogica.com") {
+        // Northbound's existing cream values.
+        // Replace MAIN_BACKGROUND with the exact existing
+        // background color from your booking page.
+        const NORTHBOUND_THEME = {
+            background: "#142D50",
+            card: "#F5F3ED",
+            surface: "#F1EEE5"
+        };
+
+        const colorIds = [
+            "background",
+            "card",
+            "surface"
+        ];
+
+        function getColor(name) {
+            return document.getElementById(
+                `theme-${name}`
+            ).value.toUpperCase();
+        }
+
+        function setColor(name, value) {
+            document.getElementById(
+                `theme-${name}`
+            ).value = value;
+
+            document.getElementById(
+                `theme-${name}-value`
+            ).value = value.toUpperCase();
+        }
+
+        function readTheme() {
+            return {
+                background: getColor("background"),
+                card: getColor("card"),
+                surface: getColor("surface")
+            };
+        }
+
+        function validHex(value) {
+            return /^#[0-9A-Fa-f]{6}$/.test(value);
+        }
+
+        function sendTheme() {
+            const theme = readTheme();
+
+            if (!Object.values(theme).every(validHex)) {
+                status.textContent =
+                    "Please enter valid six-digit hex colors.";
                 return;
             }
 
-            // Handle booking iframe resize messages
+            if (!bookingFrame.contentWindow) {
+                status.textContent =
+                    "The booking frame is not available yet.";
+                return;
+            }
+
+            bookingFrame.contentWindow.postMessage(
+                {
+                    type: "booking:theme",
+                    theme: theme
+                },
+                BOOKING_ORIGIN
+            );
+
+            status.textContent =
+                "Color settings sent to the booking page.";
+        }
+
+        // Keep the color picker and hex field synchronized.
+        colorIds.forEach(name => {
+            const picker = document.getElementById(
+                `theme-${name}`
+            );
+
+            const hexInput = document.getElementById(
+                `theme-${name}-value`
+            );
+
+            picker.addEventListener("input", () => {
+                hexInput.value = picker.value.toUpperCase();
+                sendTheme();
+            });
+
+            hexInput.addEventListener("change", () => {
+                const value = hexInput.value.trim();
+
+                if (!validHex(value)) {
+                    hexInput.value = picker.value.toUpperCase();
+                    status.textContent =
+                        "Enter a valid hex color, e.g. #F5F3ED.";
+                    return;
+                }
+
+                setColor(name, value);
+                sendTheme();
+            });
+        });
+
+        document.getElementById("apply-theme")
+            .addEventListener("click", sendTheme);
+
+        document.getElementById("reset-theme")
+            .addEventListener("click", () => {
+                colorIds.forEach(name => {
+                    setColor(name, NORTHBOUND_THEME[name]);
+                });
+
+                sendTheme();
+            });
+
+        // Receive iframe height messages.
+        window.addEventListener("message", function (event) {
+            if (event.origin !== BOOKING_ORIGIN) {
+                return;
+            }
+
+            if (event.source !== bookingFrame.contentWindow) {
+                return;
+            }
+
             if (event.data?.type === "booking:resize") {
                 const height = Number(event.data.height);
 
@@ -65,6 +350,11 @@
                     bookingFrame.style.height = `${height}px`;
                 }
             }
+        });
+
+        // Send the selected colors whenever the iframe loads.
+        bookingFrame.addEventListener("load", () => {
+            sendTheme();
         });
     </script>
 
