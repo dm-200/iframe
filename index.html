@@ -14,9 +14,7 @@
             background: #f3f4f6;
         }
 
-        h2 {
-            text-align: center;
-        }
+        h2 { text-align: center; }
 
         .theme-controls,
         .booking-container {
@@ -33,9 +31,7 @@
             border-radius: 12px;
         }
 
-        .theme-controls h3 {
-            margin: 0 0 8px;
-        }
+        .theme-controls h3 { margin: 0 0 8px; }
 
         .description {
             margin: 0 0 20px;
@@ -84,6 +80,14 @@
             font-size: 12px;
         }
 
+        .transparent-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0 18px;
+            font-size: 14px;
+        }
+
         .buttons {
             display: flex;
             flex-wrap: wrap;
@@ -124,84 +128,76 @@
         }
 
         @media (max-width: 600px) {
-            body {
-                padding: 12px;
-            }
+            body { padding: 12px; }
+            .theme-controls { padding: 15px; }
 
-            .theme-controls {
-                padding: 15px;
-            }
-
-            .color-row label {
-                font-size: 12px;
-            }
-
-            .hex-value {
-                width: 76px;
-            }
+            .color-row label { font-size: 12px; }
+            .hex-value { width: 76px; }
         }
     </style>
 </head>
 
 <body>
-
     <h2>Booking Appearance Demo</h2>
 
     <section class="theme-controls">
         <h3>Customize your booking page</h3>
 
         <p class="description">
-            Choose your brand colors below. Changes apply only to
-            the booking form shown on this page.
+            Change the colors below to test the booking page.
+            Colors are sent directly to the embedded booking iframe.
         </p>
 
         <div class="color-row">
-            <label for="theme-background">Main background</label>
+            <label for="theme-background">Outer background</label>
             <div class="color-inputs">
-                <input type="color" id="theme-background">
-                <input
-                    type="text"
-                    class="hex-value"
-                    id="theme-background-hex"
-                    maxlength="7"
-                    aria-label="Main background hex color">
+                <input type="color" id="theme-background" value="#ffffff">
+                <input type="text" class="hex-value"
+                    id="theme-background-hex" value="#FFFFFF"
+                    maxlength="7" aria-label="Outer background hex color">
             </div>
+        </div>
+
+        <div class="transparent-row">
+            <input type="checkbox" id="theme-transparent" checked>
+            <label for="theme-transparent">
+                Make outer background transparent
+            </label>
         </div>
 
         <div class="color-row">
             <label for="theme-card">Service cards</label>
             <div class="color-inputs">
-                <input type="color" id="theme-card">
-                <input
-                    type="text"
-                    class="hex-value"
-                    id="theme-card-hex"
-                    maxlength="7"
-                    aria-label="Service card hex color">
+                <input type="color" id="theme-card" value="#F5F3ED">
+                <input type="text" class="hex-value"
+                    id="theme-card-hex" value="#F5F3ED"
+                    maxlength="7" aria-label="Service card hex color">
             </div>
         </div>
 
         <div class="color-row">
             <label for="theme-surface">Background behind service tiles</label>
             <div class="color-inputs">
-                <input type="color" id="theme-surface">
-                <input
-                    type="text"
-                    class="hex-value"
-                    id="theme-surface-hex"
-                    maxlength="7"
-                    aria-label="Service tiles background hex color">
+                <input type="color" id="theme-surface" value="#F1EEE5">
+                <input type="text" class="hex-value"
+                    id="theme-surface-hex" value="#F1EEE5"
+                    maxlength="7" aria-label="Service tile background hex color">
+            </div>
+        </div>
+
+        <div class="color-row">
+            <label for="theme-message">Message area</label>
+            <div class="color-inputs">
+                <input type="color" id="theme-message" value="#FAF8F2">
+                <input type="text" class="hex-value"
+                    id="theme-message-hex" value="#FAF8F2"
+                    maxlength="7" aria-label="Message area hex color">
             </div>
         </div>
 
         <div class="buttons">
-            <button type="button" id="apply-theme">
-                Apply colors
-            </button>
-
-            <button type="button" id="reset-theme">
-                Reset demo colors
-            </button>
+            <button type="button" id="apply-theme">Apply colors</button>
+            <button type="button" id="reset-theme">Reset demo colors</button>
         </div>
 
         <div id="theme-status" role="status" aria-live="polite">
@@ -223,19 +219,22 @@
 
         const bookingFrame = document.getElementById("booking-frame");
         const status = document.getElementById("theme-status");
+        const transparentCheckbox = document.getElementById("theme-transparent");
 
-        // Test colors are defined ONCE.
-        // Change these values to try another palette.
-        const TEST_COLORS = {
-            background: "#7C1D3A",
-            card: "#B8F3FF",
-            surface: "#F4C542"
+        // Default test palette: Northbound's colors.
+        // Change the iframe URL above to test another tenant.
+        const DEFAULT_COLORS = {
+            background: "#FFFFFF",
+            card: "#F5F3ED",
+            surface: "#F1EEE5",
+            message: "#FAF8F2"
         };
 
         const fields = [
-            { name: "background", label: "Main background" },
+            { name: "background", label: "Outer background" },
             { name: "card", label: "Service cards" },
-            { name: "surface", label: "Service tiles background" }
+            { name: "surface", label: "Background behind service tiles" },
+            { name: "message", label: "Message area" }
         ];
 
         function validHex(value) {
@@ -250,14 +249,21 @@
 
         function initializeColors() {
             fields.forEach(field => {
-                setColor(field.name, TEST_COLORS[field.name]);
+                setColor(field.name, DEFAULT_COLORS[field.name]);
             });
+
+            transparentCheckbox.checked = true;
         }
 
         function readTheme() {
             const theme = {};
 
             for (const field of fields) {
+                if (field.name === "background" && transparentCheckbox.checked) {
+                    theme.background = "transparent";
+                    continue;
+                }
+
                 const value = document
                     .getElementById(`theme-${field.name}-hex`)
                     .value.trim();
@@ -276,7 +282,6 @@
 
         function sendTheme() {
             const theme = readTheme();
-
             if (!theme) return;
 
             if (!bookingFrame.contentWindow) {
@@ -293,22 +298,23 @@
             );
 
             status.textContent =
-                "Colors sent: " +
-                Object.values(theme).join(" · ");
+                "Theme sent: " +
+                Object.entries(theme)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(" | ");
         }
 
-        // Keep the color picker and hex input synchronized.
         fields.forEach(field => {
-            const picker = document.getElementById(
-                `theme-${field.name}`
-            );
-
-            const hex = document.getElementById(
-                `theme-${field.name}-hex`
-            );
+            const picker = document.getElementById(`theme-${field.name}`);
+            const hex = document.getElementById(`theme-${field.name}-hex`);
 
             picker.addEventListener("input", () => {
                 hex.value = picker.value.toUpperCase();
+
+                if (field.name === "background") {
+                    transparentCheckbox.checked = false;
+                }
+
                 sendTheme();
             });
 
@@ -323,9 +329,16 @@
                 }
 
                 setColor(field.name, value.toUpperCase());
+
+                if (field.name === "background") {
+                    transparentCheckbox.checked = false;
+                }
+
                 sendTheme();
             });
         });
+
+        transparentCheckbox.addEventListener("change", sendTheme);
 
         document.getElementById("apply-theme")
             .addEventListener("click", sendTheme);
@@ -336,7 +349,7 @@
                 sendTheme();
             });
 
-        // Preserve the existing iframe resize behavior.
+        // Preserve iframe resizing.
         window.addEventListener("message", event => {
             if (event.origin !== BOOKING_ORIGIN) return;
             if (event.source !== bookingFrame.contentWindow) return;
@@ -350,11 +363,10 @@
             }
         });
 
-        // Send the current colors after the iframe loads.
+        // Send the current theme whenever the iframe loads.
         bookingFrame.addEventListener("load", sendTheme);
 
         initializeColors();
     </script>
-
 </body>
 </html>
